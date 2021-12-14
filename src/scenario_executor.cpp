@@ -23,7 +23,6 @@ class cmdVelController {
 
         void turnFinishFlgCallback(const std_msgs::Bool::ConstPtr& turn_finish_flg);
         void hypothesisCallback(const intersection_recognition::Hypothesis::ConstPtr& hypothesis);
-        void emergencyStopFlgCallback(const std_msgs::Bool::ConstPtr& emergency_stop_flg);
         bool scenarioCallback(intersection_recognition::Scenario::Request& scenario,
                               intersection_recognition::Scenario::Response& res);
      private:
@@ -31,7 +30,6 @@ class cmdVelController {
         ros::Publisher emergency_stop_flg_pub_;
         ros::Publisher rotate_rad_pub_;
         ros::Subscriber hypothesis_sub_;
-        ros::Subscriber emergency_stop_flg_sub_;
         ros::Subscriber turn_finish_flg_sub_;
         ros::ServiceServer scenario_server_;
 
@@ -68,7 +66,6 @@ cmdVelController::cmdVelController(){
 
     turn_finish_flg_sub_ = node_.subscribe<std_msgs::Bool> ("turn_finish_flg", 1, &cmdVelController::turnFinishFlgCallback, this);
     hypothesis_sub_ = node_.subscribe<intersection_recognition::Hypothesis> ("hypothesis", 1, &cmdVelController::hypothesisCallback, this);
-    emergency_stop_flg_sub_ = node_.subscribe<std_msgs::Bool> ("emergency_stop_flg", 1, &cmdVelController::emergencyStopFlgCallback, this);
     scenario_server_ = node_.advertiseService("scenario", &cmdVelController::scenarioCallback, this);
 
     updateLastNode(false, false, false, false);
@@ -207,52 +204,50 @@ bool cmdVelController::compareLastNodeAndCurrentNode(const intersection_recognit
 }
 
 void cmdVelController::hypothesisCallback(const intersection_recognition::Hypothesis::ConstPtr& hypothesis){
-    if(! emergency_stop_flg_){
-        if(request_update_last_node_flg){
-            updateLastNode(hypothesis->center_flg, hypothesis->back_flg, hypothesis->left_flg, hypothesis->right_flg);
-            request_update_last_node_flg = false;
-        }
-        if(! turn_flg_){
-            if(change_node_flg_){
-                satisfy_conditions_flg_ = compareScenarioAndHypothesis(hypothesis);
-                if(satisfy_conditions_flg_){
-                    ROS_INFO("find target node");
-                    reach_target_type_cnt_++;
-                    if(reach_target_type_cnt_margin_ <= reach_target_type_cnt_){
-                        reach_target_type_cnt_ = 0;
-                        scenario_order_cnt_++;
-                        change_node_flg_ = false;
-                        updateLastNode(hypothesis->center_flg, hypothesis->back_flg, hypothesis->left_flg, hypothesis->right_flg);
-                        int order = *std::next(target_order_itr_begin_, scenario_progress_cnt_);
-                        if(order <= scenario_order_cnt_){
-                            ROS_INFO("Robot reaches target_node!!");
-                            scenario_order_cnt_ = 0;
-                            scenario_progress_cnt_++;
-                            loadNextScenario();
-                        }
-                    }
-                }
-                else{
+    if(request_update_last_node_flg){
+        updateLastNode(hypothesis->center_flg, hypothesis->back_flg, hypothesis->left_flg, hypothesis->right_flg);
+        request_update_last_node_flg = false;
+    }
+    if(! turn_flg_){
+        if(change_node_flg_){
+            satisfy_conditions_flg_ = compareScenarioAndHypothesis(hypothesis);
+            if(satisfy_conditions_flg_){
+                ROS_INFO("find target node");
+                reach_target_type_cnt_++;
+                if(reach_target_type_cnt_margin_ <= reach_target_type_cnt_){
                     reach_target_type_cnt_ = 0;
+                    scenario_order_cnt_++;
+                    change_node_flg_ = false;
+                    updateLastNode(hypothesis->center_flg, hypothesis->back_flg, hypothesis->left_flg, hypothesis->right_flg);
+                    int order = *std::next(target_order_itr_begin_, scenario_progress_cnt_);
+                    if(order <= scenario_order_cnt_){
+                        ROS_INFO("Robot reaches target_node!!");
+                        scenario_order_cnt_ = 0;
+                        scenario_progress_cnt_++;
+                        loadNextScenario();
+                    }
                 }
             }
             else{
-                if(! compareLastNodeAndCurrentNode(hypothesis)){
-                    reach_different_type_cnt_++;
-                    if(reach_different_type_cnt_margin_ <= reach_different_type_cnt_){
-                        reach_different_type_cnt_ = 0;
-                        updateLastNode(hypothesis->center_flg, hypothesis->back_flg, hypothesis->left_flg, hypothesis->right_flg);
-                        change_node_flg_ = true;
-                    }
-                }
-                else{
+                reach_target_type_cnt_ = 0;
+            }
+        }
+        else{
+            if(! compareLastNodeAndCurrentNode(hypothesis)){
+                reach_different_type_cnt_++;
+                if(reach_different_type_cnt_margin_ <= reach_different_type_cnt_){
                     reach_different_type_cnt_ = 0;
+                    updateLastNode(hypothesis->center_flg, hypothesis->back_flg, hypothesis->left_flg, hypothesis->right_flg);
+                    change_node_flg_ = true;
                 }
             }
-            rotate_rad_for_pub_.data = 0.00;
+            else{
+                reach_different_type_cnt_ = 0;
+            }
         }
-        rotate_rad_pub_.publish(rotate_rad_for_pub_);
+        rotate_rad_for_pub_.data = 0.00;
     }
+    rotate_rad_pub_.publish(rotate_rad_for_pub_);       
 }
 
 void cmdVelController::turnFinishFlgCallback(const std_msgs::Bool::ConstPtr& turn_finish_flg){
@@ -264,9 +259,6 @@ void cmdVelController::turnFinishFlgCallback(const std_msgs::Bool::ConstPtr& tur
     change_node_flg_ = false;
 }
 
-void cmdVelController::emergencyStopFlgCallback(const std_msgs::Bool::ConstPtr& emergency_stop_flg){
-    emergency_stop_flg_ = emergency_stop_flg->data;
-}
 
 bool cmdVelController::scenarioCallback(intersection_recognition::Scenario::Request& scenario,
                                         intersection_recognition::Scenario::Response& res){
