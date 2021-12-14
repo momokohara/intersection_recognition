@@ -1,5 +1,4 @@
 #include "ros/ros.h"
-#include "sensor_msgs/LaserScan.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float32.h"
@@ -16,7 +15,6 @@ class cmdVelController {
      public:
         cmdVelController();
         geometry_msgs::Twist vel_;
-        int SCAN_HZ = 0;
         double IMU_HZ = 100.0;
         double CHANGE_DIRECTION_DISTANCE_THRESH = 0.0;
         double CHANGE_DIRECTION_RAD = 0.0;
@@ -26,7 +24,6 @@ class cmdVelController {
         void moveCallback(const sensor_msgs::Imu::ConstPtr& imu_data);
         void turnRadCallback(const std_msgs::Float32::ConstPtr& turn_rad);
         void emergencyStopFlgCallback(const std_msgs::Bool::ConstPtr& emergency_stop_flg);
-        void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
 
      private:
         ros::NodeHandle node_;
@@ -35,7 +32,6 @@ class cmdVelController {
         ros::Subscriber imu_sub_;
         ros::Subscriber rotate_rad_sub_;
         ros::Subscriber emergency_stop_flg_sub_;
-        ros::Subscriber scan_sub_;
 
         bool turn_flg_ = false;
         bool emergency_stop_flg_ = true;
@@ -54,17 +50,13 @@ cmdVelController::cmdVelController(){
     imu_sub_ = node_.subscribe<sensor_msgs::Imu> ("imu_data", 1, &cmdVelController::moveCallback, this);
     rotate_rad_sub_ = node_.subscribe<std_msgs::Float32> ("rotate_rad", 1, &cmdVelController::turnRadCallback, this);
     emergency_stop_flg_sub_ = node_.subscribe<std_msgs::Bool> ("emergency_stop_flg", 1, &cmdVelController::emergencyStopFlgCallback, this);
-    scan_sub_ = node_.subscribe<sensor_msgs::LaserScan> ("/hokuyo_scan", 1, &cmdVelController::scanCallback, this);
 
     getRosParam();
 }
 
 void cmdVelController::getRosParam(void){
-    SCAN_HZ = 10;
     IMU_HZ = 100.0;
     reverse_turn = 1.0;
-    CHANGE_DIRECTION_DISTANCE_THRESH = 0.40;
-    CHANGE_DIRECTION_RAD = 0.3;
     node_.getParam("extended_toe_finding/SCAN_HZ", SCAN_HZ);
     node_.getParam("cmd_vel_controller/IMU_HZ", IMU_HZ);
     node_.getParam("cmd_vel_controller/reverse_turn", reverse_turn);
