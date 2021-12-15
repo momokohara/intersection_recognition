@@ -1,9 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <node name="extended_toe_finding_and_yolo" pkg="intersection_recognition" type="extended_toe_finding_and_yolo" output="screen" >
-    <remap from="scan" to="merged_scan" />
-    <remap from="image_raw" to="/image/mercator" />
-    <param name="SCAN_HZ" value="10"/>
+  <node name="extended_toe_finding_and_yolo" pkg="intersection_recognition" type="recognition_aisle_yolo.cpp" output="screen" >
     <param name="door_size_thresh" value="0.5"/>
     <param name="robot_frame" value="base_link"/>
   </node>

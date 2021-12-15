@@ -13,9 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   geometry_msgs
+  yolov5_pytorch_ros
   message_generation
-  actionlib_msgs
-  actionlib
   genmsg
   message_filters
 )
@@ -71,10 +70,10 @@ add_message_files(
  )
 
 ## Generate actions in the 'action' folder
-add_action_files(
-   FILES
-   BoundingBoxes.action
-)
+#add_action_files(
+#   FILES
+#   BoundingBoxes.action
+#)
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
@@ -82,7 +81,6 @@ generate_messages(
     geometry_msgs
     sensor_msgs
     std_msgs
-    actionlib_msgs
 )
 
 
@@ -239,24 +237,6 @@ target_link_libraries(
 )
 
 
-add_executable(toe_finding
-    src/toe_finding.cpp
-)
-target_link_libraries(
-  toe_finding
-  ${catkin_LIBRARIES}
-)
-
-add_executable(extended_toe_finding
-    src/extended_toe_finding.cpp
-)
-add_dependencies(extended_toe_finding intersection_recognition_generate_messages_cpp)
-target_link_libraries(
-  extended_toe_finding
-  ${catkin_LIBRARIES}
-)
-
-
 add_executable(scenario_executor
     src/scenario_executor.cpp
 )
@@ -266,22 +246,17 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
-add_executable(simple_emergency_stop
-    src/simple_emergency_stop.cpp
+
+
+add_executable(recognition_aisle_yolo
+	src/recognition_aisle_yolo.cpp
 )
+add_dependencies(recognition_aisle_yolo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(
-  simple_emergency_stop
-  ${catkin_LIBRARIES}
+	recognition_aisle_yolo
+	${catkin_LIBRARIES}
 )
 
 
-add_executable(extended_toe_finding_and_yolo
-    src/extended_toe_finding_and_yolo.cpp
-)
-add_dependencies(extended_toe_finding_and_yolo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(
-  extended_toe_finding_and_yolo
-  ${catkin_LIBRARIES}
-)
 
 

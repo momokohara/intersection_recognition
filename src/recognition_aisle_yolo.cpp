@@ -23,22 +23,19 @@ class intersectionRecognition {
         	bool center_flg, bool back_flg, bool left_flg, bool right_flg 
         );
         void BBCallback(
-        	const intersection_recognition::BoundingBoxesConstPtr& boundingboxes
+        	const yolov5_pytorch_ros::BoundingBoxesConstPtr& boundingboxes
         );
 
     private:
         ros::NodeHandle node_;
         ros::Subscriber boundingboxes_sub_;
-		ros::Publisher hypothesis_pub_;
-        boost::shared_ptr<Sync> sync_;
-
+	ros::Publisher hypothesis_pub_;
 };
 
-intersectionRecognition::intersectionRecognition() :
+intersectionRecognition::intersectionRecognition()
 {
-    boundingboxes_sub_ = node_.subscribe<yolov5_pytorch_ros::BoundingBoxes>("detected_objects_in_image", 1, &intersectionRecognition::Callback, this);
+    boundingboxes_sub_ = node_.subscribe<yolov5_pytorch_ros::BoundingBoxes>("detected_objects_in_image", 1, &intersectionRecognition::BBCallback, this);
     hypothesis_pub_ = node_.advertise<intersection_recognition::Hypothesis>("hypothesis", 1);
-
 }
 
 void intersectionRecognition::get_ros_param(void){
@@ -52,15 +49,15 @@ void intersectionRecognition::BBCallback(const yolov5_pytorch_ros::BoundingBoxes
 	std::vector<int> tentative_hyp(4, 0);
 	std::vector<int> pre_tentative_hyp(4, 0);
 	std::vector<yolov5_pytorch_ros::BoundingBox> yolo_result = boundingboxes->bounding_boxes;
+	intersection_recognition::Hypothesis hypothesis;
 	for(const auto obj : yolo_result){ //per box
-		double obj_size, obj_center;
+		double obj_size, x_center, y_center;
 		if(obj.Class == "aisle" && obj.probability >= probability_thresh){ //only aisle & above thresh
 			obj_size = obj.xmax - obj.xmin;
 			if(obj_size >= door_size_thresh){
-				x_center = (obj.xmin + obj.xmax)//2;
-				y_center = (obj.ymin + obj.ymax)//2;
+				x_center = (obj.xmin + obj.xmax)/2;
+				y_center = (obj.ymin + obj.ymax)/2;
 
-				intersection_recognition::Hypothesis hypothesis;
 				int y_min_thresh = 130, y_max_thresh = 230;
 				int x_left_min_thresh = 80, x_left_max_thresh = 160;
 				int x_center_min_thresh = 190, x_center_max_thresh = 290;
@@ -107,6 +104,7 @@ void intersectionRecognition::BBCallback(const yolov5_pytorch_ros::BoundingBoxes
 					}
 				}
 			}
+		}
 		else{
 			for(int i = 0; i < tentative_hyp.size(); i++){
 				tentative_hyp[i] = 0;
@@ -117,6 +115,7 @@ void intersectionRecognition::BBCallback(const yolov5_pytorch_ros::BoundingBoxes
 				}
 			}
 		}
+	}
 	if(pre_tentative_hyp[0] == 1){
 		hypothesis.left_flg = true;
 	}
@@ -145,7 +144,6 @@ void intersectionRecognition::BBCallback(const yolov5_pytorch_ros::BoundingBoxes
 }
 
 
-
 int main(int argc, char** argv){
     ros::init(argc, argv, "extended_toe_finding");
     intersectionRecognition recognition;
@@ -153,8 +151,7 @@ int main(int argc, char** argv){
     ros::Rate loop_rate(10);
     while(ros::ok()){
         ros::spinOnce();
-        loop_rate.sleep();
+	loop_rate.sleep();
     }
-
     return 0;
 }
