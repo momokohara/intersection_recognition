@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <launch>
-  <node name="extended_toe_finding_and_yolo" pkg="intersection_recognition" type="recognition_aisle_yolo.cpp" output="screen" >
-    <param name="door_size_thresh" value="0.5"/>
+  <node name="extended_toe_finding" pkg="intersection_recognition" type="recognition_aisle_yolo" output="screen" >
+    <param name="door_size_thresh" value="10"/>
+    <param name="probability_thresh" value="0.5"/>
     <param name="robot_frame" value="base_link"/>
   </node>
 
@@ -22,12 +23,4 @@
   <node name="scenario_parser" pkg="intersection_recognition" type="scenario_parser.py" output="screen" >
     <param name="scenario_path" value="$(find intersection_recognition)/config/Scenarios/scenario01.txt" />
   </node>
-
-  <node pkg="theta_simple_stitching" type="simple_stitching.py" name="theta_simple_stitching" output="screen">
-    <param name="sub_image_topic_name" value="/camera360/image_raw"/>
-  </node>
-
-
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find intersection_recognition)/config/intersection_recognition.rviz"/>
-
 </launch>

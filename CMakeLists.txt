@@ -227,6 +227,17 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
+
+add_executable(new_cmd_vel_controller
+    src/new_cmd_vel_controller.cpp
+)
+add_dependencies(new_cmd_vel_controller intersection_recognition_generate_messages_cpp)
+target_link_libraries(
+  new_cmd_vel_controller
+  ${catkin_LIBRARIES}
+)
+
+
 add_executable(cmd_vel_controller_with_IDWA
     src/cmd_vel_controller_with_IDWA.cpp
 )
