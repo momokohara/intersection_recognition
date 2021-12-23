@@ -103,6 +103,44 @@ void cmdVelController::moveCallback(const sensor_msgs::Imu::ConstPtr& imu_data){
     }
 }
 
+void cmdVelController::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan){
+    std::vector<float> scan_copy(scan->ranges.size());
+    std::copy(scan->ranges.begin(), scan->ranges.end(), scan_copy.begin());
+    for(int i=0; i<scan->ranges.size(); i++){
+        if(scan_copy[i] <= scan->range_min){
+            scan_copy[i] = 1000.0;
+        }
+    }
+    int index_scan_min_right = std::min_element(std::next(scan_copy.begin(), (-3*M_PI_4 - scan->angle_min)/scan->angle_increment), std::next(scan_copy.begin(), (-M_PI/12 - scan->angle_min)/scan->angle_increment)) - scan_copy.begin();
+    int index_scan_min_left = std::min_element(std::next(scan_copy.begin(), (M_PI/12 - scan->angle_min)/scan->angle_increment), std::next(scan_copy.begin(), (3*M_PI_4 - scan->angle_min)/scan->angle_increment)) - scan_copy.begin();
+    double distance_scan_min_right = scan->ranges[index_scan_min_right];
+    double distance_scan_min_left = scan->ranges[index_scan_min_left];
+    if(distance_scan_min_right <= CHANGE_DIRECTION_DISTANCE_THRESH && distance_scan_min_right < distance_scan_min_left){
+        if(!big_modified_flg_right_){
+          ROS_WARN("Modified robot-direction to left");
+          big_modified_flg_right_ = true;
+          target_yaw_rad_ -= CHANGE_DIRECTION_RAD;
+        }
+    }
+    else if(distance_scan_min_left <= CHANGE_DIRECTION_DISTANCE_THRESH && distance_scan_min_left < distance_scan_min_right){
+        if(!big_modified_flg_left_){
+          ROS_WARN("Modified robot-direction to right");
+          big_modified_flg_left_ = true;
+          target_yaw_rad_ += CHANGE_DIRECTION_RAD;
+        }
+    }
+    else{
+      if(big_modified_flg_right_){
+        big_modified_flg_right_ = false;
+        target_yaw_rad_ += CHANGE_DIRECTION_RAD * 9 / 10;
+      }
+      else if(big_modified_flg_left_){
+        big_modified_flg_left_ = false;
+        target_yaw_rad_ -= CHANGE_DIRECTION_RAD * 9 / 10;
+      }
+    }
+//    std::cout << "yaw rad is " << target_yaw_rad_ << "  diff is " << target_yaw_rad_ - current_yaw_rad_ << std::endl;
+}
 
 void cmdVelController::turnRadCallback(const std_msgs::Float32::ConstPtr& turn_rad){
     rotate_rad_ = turn_rad->data * reverse_turn;
