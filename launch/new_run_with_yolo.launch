@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="extended_toe_finding" pkg="intersection_recognition" type="recognition_aisle_yolo" output="screen" >
+    <param name="door_size_thresh" value="10"/>
+    <param name="probability_thresh" value="0.5"/>
+    <param name="robot_frame" value="base_link"/>
+  </node>
+
+  <node name="new_scenario_executor" pkg="intersection_recognition" type="new_scenario_executor" output="screen" />
+    <param name="y_min_thresh" value="130"/>
+    <param name="y_max_thresh" value="230"/>
+    <param name="x_left_min_thresh" value="80"/>
+    <param name="x_left_max_thresh" value="130"/>
+    <param name="x_center_min_thresh" value="190"/>
+    <param name="x_center_max_thresh" value="290"/>
+    <param name="x_right_min_thresh" value="350"/>
+    <param name="x_right_max_thresh" value="450"/>
+    <param name="x_back_min_thresh" value="510"/>
+    <param name="x_back_max_thresh" value="610"/>
+
+  <node name="cmd_vel_controller" pkg="intersection_recognition" type="new_cmd_vel_controller" output="screen" >
+    <remap from="cmd_vel" to="icart_mini/cmd_vel" />
+    <param name="IMU_HZ" value="100.0"/>
+    <param name="reverse_turn" value="1.0"/>
+    <param name="CHANGE_DIRECTION_DISTANCE_THRESH" value="0.6"/>
+  </node>
+
+<!--
+  <node name="emergency_stop" pkg="intersection_recognition" type="simple_emergency_stop" output="screen" >
+    <param name="stop_distance_thresh" value="0.2"/>
+  </node>
+-->
+
+  <node name="scenario_parser" pkg="intersection_recognition" type="scenario_parser.py" output="screen" >
+    <param name="scenario_path" value="$(find intersection_recognition)/config/Scenarios/scenario01.txt" />
+  </node>
+</launch>

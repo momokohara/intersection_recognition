@@ -18,6 +18,16 @@ class intersectionRecognition {
         intersectionRecognition();
         double door_size_thresh;
 		double probability_thresh;
+	int y_min_thresh;
+	int y_max_thresh;
+	int x_left_min_thresh;
+    	int x_left_max_thresh;
+    	int x_center_min_thresh;
+    	int x_center_max_thresh;
+    	int x_right_min_thresh;
+    	int x_right_max_thresh;
+    	int x_back_min_thresh;
+    	int x_back_max_thresh;
         void get_ros_param(void);
         intersection_recognition::Hypothesis generate_publish_variable(
         	bool center_flg, bool back_flg, bool left_flg, bool right_flg 
@@ -41,8 +51,28 @@ intersectionRecognition::intersectionRecognition()
 void intersectionRecognition::get_ros_param(void){
     door_size_thresh = 0.5;
 	probability_thresh = 0.5;
+    y_min_thresh = 130;
+    y_max_thresh = 230;
+    x_left_min_thresh = 80;
+    x_left_max_thresh = 180;
+    x_center_min_thresh = 190;
+    x_center_max_thresh = 290;
+    x_right_min_thresh = 350;
+    x_right_max_thresh = 450;
+    x_back_min_thresh = 510;
+    x_back_max_thresh = 610;
     node_.getParam("extended_toe_finding/door_size_thresh", door_size_thresh);
     node_.getParam("extended_toe_finding/probability_thresh", probability_thresh);
+    node_.getParam("y_min_thresh", y_min_thresh);
+    node_.getParam("y_max_thresh", y_max_thresh);
+    node_.getParam("x_left_min_thresh", x_left_min_thresh);
+    node_.getParam("x_left_max_thresh", x_left_max_thresh);
+    node_.getParam("x_center_min_thresh", x_center_min_thresh);
+    node_.getParam("x_center_max_thresh", x_center_max_thresh);
+    node_.getParam("x_right_min_thresh", x_right_min_thresh);
+    node_.getParam("x_right_max_thresh", x_right_max_thresh);
+    node_.getParam("x_back_min_thresh", x_back_min_thresh);
+    node_.getParam("x_back_max_thresh", x_back_max_thresh);
 }
 
 void intersectionRecognition::BBCallback(const yolov5_pytorch_ros::BoundingBoxes::ConstPtr& boundingboxes){
@@ -57,12 +87,6 @@ void intersectionRecognition::BBCallback(const yolov5_pytorch_ros::BoundingBoxes
 			if(obj_size >= door_size_thresh){
 				x_center = (obj.xmin + obj.xmax)/2;
 				y_center = (obj.ymin + obj.ymax)/2;
-
-				int y_min_thresh = 130, y_max_thresh = 230;
-				int x_left_min_thresh = 80, x_left_max_thresh = 160;
-				int x_center_min_thresh = 190, x_center_max_thresh = 290;
-				int x_right_min_thresh = 350, x_right_max_thresh = 450;
-				int x_back_min_thresh = 510, x_back_max_thresh = 610;
 
 				if((x_left_min_thresh <= x_center && x_center <= x_left_max_thresh) && (y_min_thresh <= y_center && y_center <= y_max_thresh)){
 					tentative_hyp[0] = 1;
