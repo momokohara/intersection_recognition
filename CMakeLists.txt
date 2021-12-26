@@ -247,13 +247,20 @@ target_link_libraries(
   ${catkin_LIBRARIES}
 )
 
-
 add_executable(scenario_executor
     src/scenario_executor.cpp
 )
 add_dependencies(scenario_executor intersection_recognition_generate_messages_cpp)
 target_link_libraries(
   scenario_executor
+  ${catkin_LIBRARIES}
+)
+add_executable(new_scenario_executor
+    src/new_scenario_executor.cpp
+)
+add_dependencies(new_scenario_executor intersection_recognition_generate_messages_cpp)
+target_link_libraries(
+  new_scenario_executor
   ${catkin_LIBRARIES}
 )
 

@@ -4,6 +4,7 @@
 #include "std_msgs/Float32.h"
 #include "geometry_msgs/Twist.h"
 #include "sensor_msgs/Imu.h"
+#include "sensor_msgs/LaserScan.h"
 #include "intersection_recognition/Scenario.h"
 #include <unistd.h>
 #include <cmath>
@@ -15,13 +16,16 @@ class cmdVelController {
      public:
         cmdVelController();
         geometry_msgs::Twist vel_;
+	int SCAN_HZ = 0;
         double IMU_HZ = 100.0;
+	double CHANGE_DIRECTION_DISTANCE_THRESH = 0.0;
         double CHANGE_DIRECTION_RAD = 0.0;
         float reverse_turn = 0;
         float rotate_rad_ = 0;
         void getRosParam(void);
         void moveCallback(const sensor_msgs::Imu::ConstPtr& imu_data);
         void turnRadCallback(const std_msgs::Float32::ConstPtr& turn_rad);
+	void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
         void emergencyStopFlgCallback(const std_msgs::Bool::ConstPtr& emergency_stop_flg);
 
      private:
@@ -30,7 +34,10 @@ class cmdVelController {
         ros::Publisher turn_finish_flg_pub_;
         ros::Subscriber imu_sub_;
         ros::Subscriber rotate_rad_sub_;
+	ros::Subscriber scan_sub_;
         ros::Subscriber emergency_stop_flg_sub_;
+	bool big_modified_flg_left_ = false;
+	bool big_modified_flg_right_ = false;
 
         bool turn_flg_ = false;
         bool emergency_stop_flg_ = true;
@@ -46,16 +53,22 @@ cmdVelController::cmdVelController(){
 
     imu_sub_ = node_.subscribe<sensor_msgs::Imu> ("imu_data", 1, &cmdVelController::moveCallback, this);
     rotate_rad_sub_ = node_.subscribe<std_msgs::Float32> ("rotate_rad", 1, &cmdVelController::turnRadCallback, this);
+    scan_sub_ = node_.subscribe<sensor_msgs::LaserScan>("merged_scan", 1, &cmdVelController::scanCallback, this);
     emergency_stop_flg_sub_ = node_.subscribe<std_msgs::Bool> ("emergency_stop_flg", 1, &cmdVelController::emergencyStopFlgCallback, this);
 
     getRosParam();
 }
 
 void cmdVelController::getRosParam(void){
+    SCAN_HZ = 10;
     IMU_HZ = 100.0;
     reverse_turn = 1.0;
+    CHANGE_DIRECTION_DISTANCE_THRESH = 0.40;
+    CHANGE_DIRECTION_RAD = 0.3;
+    node_.getParam("extended_toe_finding/SCAN_HZ", SCAN_HZ);
     node_.getParam("cmd_vel_controller/IMU_HZ", IMU_HZ);
     node_.getParam("cmd_vel_controller/reverse_turn", reverse_turn);
+    node_.getParam("cmd_vel_controller/CHANGE_DIRECTION_DISTANCE_THRESH", CHANGE_DIRECTION_DISTANCE_THRESH);
 }
 
 void cmdVelController::moveCallback(const sensor_msgs::Imu::ConstPtr& imu_data){
