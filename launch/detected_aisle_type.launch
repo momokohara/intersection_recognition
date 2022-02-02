@@ -1,0 +1,5 @@
+<launch>
+  <node name="detected_aisle_type" pkg="intersection_recognition" type="detected_aisle_type" output="screen" >
+  </node>
+
+</launch>

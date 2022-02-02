@@ -62,7 +62,7 @@ class intersectionRecognition {
 
 intersectionRecognition::intersectionRecognition() :
     action_client_("yolov5_action", true),
-    direction_name_({"left", "center", "right", "back"})
+    direction_name_({"left", "right"})
 {
     marker_pub_ = node_.advertise<visualization_msgs::MarkerArray>("visualization_markerarray", 1);
     hypothesis_pub_ = node_.advertise<intersection_recognition::Hypothesis>("hypothesis", 1);
@@ -85,7 +85,7 @@ intersectionRecognition::intersectionRecognition() :
 
 void intersectionRecognition::get_ros_param(void){
     SCAN_HZ = 10;
-    door_size_thresh = 0.5;
+    door_size_thresh = 10;
     robot_frame_ = "base_link";
     node_.getParam("extended_toe_finding/SCAN_HZ", SCAN_HZ);
     node_.getParam("extended_toe_finding/door_size_thresh", door_size_thresh);
@@ -105,56 +105,32 @@ void intersectionRecognition::merge_yolo_result(
     int width, double scan_angle,
     float *distance_left, float *distance_center, float *distance_right, float *distance_back
 ){
-    std::vector<double> corridor_direction(4);
-    std::vector<float*> corridor_distance(4);
+    std::vector<float*> corridor_distance(2);
+    int corridor_direction[2][2];
     // left
-    corridor_direction[0] = M_PI + scan_angle + M_PI_2;
     corridor_distance[0] = distance_left;
-    // center
-    corridor_direction[1] = M_PI + scan_angle;
-    corridor_distance[1] = distance_center;
+    corridor_direction[0][0] = 40;
+    corridor_direction[0][1] = 140;
     // right
-    corridor_direction[2] = M_PI + scan_angle - M_PI_2;
-    corridor_distance[2] = distance_right;
-    // back
-    corridor_direction[3] = (scan_angle >= 0) ? M_PI + scan_angle - M_PI : M_PI + scan_angle + M_PI;
-    corridor_distance[3] = distance_back;
-
+    corridor_distance[1] = distance_right;
+    corridor_direction[1][0] = 350;
+    corridor_direction[1][1] = 450;
+    
+    float probability_thresh = 0.5;
     for(const auto obj : yolo_result_){
-        if((obj.Class == "door") || obj.Class == "square" || obj.Class == "step" || (obj.Class.find("end") != std::string::npos)){
-            double obj_xmin = 2 * M_PI - (double(obj.xmin) / width * 2 * M_PI);
-            double obj_xmax = 2 * M_PI - (double(obj.xmax) / width * 2 * M_PI);
-            /*
-              exchange xmax for xmin
-              because directions of each x-axis are different
-              the direction of LiDAR is counterclockwise rotation
-                  back -> right -> front -> left
-              the direction of image is clockwise rotation
-                  back -> left -> front -> right
-            */
-            std::swap(obj_xmin, obj_xmax);
-            if(obj_xmax - obj_xmin > door_size_thresh){
-                for(int i = 0; i < corridor_direction.size(); i++){
-                    if(obj_xmin < corridor_direction[i] && corridor_direction[i] < obj_xmax){
-                        std::cout << "Detect a "<< obj.Class <<" on the " << direction_name_[i] << std::endl;
-                        *corridor_distance[i] = 0;
-                    }
-                }
+        if(((obj.Class == "door") || obj.Class == "square" || obj.Class == "step") && obj.probability >= probability_thresh){
+	    double object_size = obj.xmax - obj.xmin;
+	    if(object_size > door_size_thresh) {
+  	        double x_center = (obj.xmin + obj.xmax)/2;
+		double y_center = (obj.ymin + obj.ymax)/2;
+		for(int i = 0; i < corridor_distance.size(); i++){
+		    if(corridor_direction[i][0] <= x_center && x_center <= corridor_direction[i][1]){
+			std::cout << "Detect a "<< obj.Class <<" on the " << direction_name_[i] << std::endl;
+			*corridor_distance[i] = 0;
+		    }
+		}
             }
-        }
-    }
-    for(const auto aisle : yolo_result_){
-        if(aisle.Class == "aisle"){
-            double aisle_xmin = 2 * M_PI - (double(aisle.xmin) / width * 2 * M_PI);
-            double aisle_xmax = 2 * M_PI - (double(aisle.xmax) / width * 2 * M_PI);
-            std::swap(aisle_xmin, aisle_xmax);
-            for(int i = 0; i < corridor_direction.size(); i++){
-                if(aisle_xmin < corridor_direction[i] && corridor_direction[i] < aisle_xmax){
-                    std::cout << "Detect an aisle on the " << direction_name_[i] << std::endl;
-                    *corridor_distance[i] = 10;
-                }
-            }
-        }
+	}
     }
 }
 

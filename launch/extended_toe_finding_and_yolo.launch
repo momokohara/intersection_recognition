@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
-  <node name="extended_toe_finding_and_yolo" pkg="intersection_recognition" type="recognition_aisle_yolo.cpp" output="screen" >
-    <param name="door_size_thresh" value="10"/>
+  <node name="extended_toe_finding" pkg="intersection_recognition" type="extended_toe_finding_and_yolo" output="screen" >
+    <param name="door_size_thresh" value="0.5"/>
   </node>
-  <node name="rviz" pkg="rviz" type="rviz" />
+  <!-- <node name="rviz" pkg="rviz" type="rviz" /> -->
 
 </launch>

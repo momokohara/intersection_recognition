@@ -31,7 +31,7 @@ class intersectionRecognition {
 };
 
 intersectionRecognition::intersectionRecognition(){
-    scan_sub_ = node_.subscribe<sensor_msgs::LaserScan> ("/scan", 1, &intersectionRecognition::scanCallback, this);
+    scan_sub_ = node_.subscribe<sensor_msgs::LaserScan> ("/merged_scan", 1, &intersectionRecognition::scanCallback, this);
     marker_pub_ = node_.advertise<visualization_msgs::MarkerArray>("corridor_visualization", 1);
     hypothesis_pub_ = node_.advertise<intersection_recognition::Hypothesis>("hypothesis", 1);
 }
@@ -78,25 +78,42 @@ void intersectionRecognition::scanCallback(const sensor_msgs::LaserScan::ConstPt
 
     for(int i = 1; i+10 < num_scan - 1; i ++) {
         double angle = atan2(y[i] - y[i+10-1], x[i] - x[i+10-1]);
+	//std::cout << "[" << i << "] angle = " << angle << std::endl;
         while(angle <       0.0) angle += M_PI_2;
         while(angle >= M_PI_2) angle -= M_PI_2;
+	//std::cout << "angle/M_PI*180 = " << angle/M_PI*180 << std::endl;
         angle_bin[static_cast<int>(angle/M_PI*180)] += 1;
+	//std::cout << angle_bin[static_cast<int>(angle/M_PI*180)] << std::endl;
     }
 
     int max_angle = 0, max_bin = 0;
+    for(int i = 0; i < angle_bin.size() - 1; i++) {
+	    std::cout << "angle_bin[" << i <<"] = " << angle_bin[i] << std::endl;
+    }
     max_angle = std::max_element(angle_bin.begin(), angle_bin.end()) - angle_bin.begin();
     max_bin = angle_bin[max_angle];
+    std::cout << "max_angle = " << max_angle << ", max_bin = " << max_bin << std::endl;
 
     double scan_angle = static_cast<double>((max_angle <= 45) ? max_angle : max_angle - 90)/180.0*M_PI;
+    std::cout << "scan_angle = " << scan_angle << std::endl;
     int scan_left   = static_cast<int>((scan_angle + M_PI_2 - scan->angle_min) / scan->angle_increment + num_scan) % num_scan;
+    std::cout << "scan_left = " << scan_left << std::endl;
     int scan_center = static_cast<int>((scan_angle          - scan->angle_min) / scan->angle_increment + num_scan) % num_scan;
+    std::cout << "scan_center = " << scan_center << std::endl;
     int scan_right  = static_cast<int>((scan_angle - M_PI_2 - scan->angle_min) / scan->angle_increment + num_scan) % num_scan;
+    std::cout << "scan_right = " << scan_right << std::endl;
     int scan_back   = static_cast<int>((scan_angle - M_PI   - scan->angle_min) / scan->angle_increment + num_scan) % num_scan;
-
+    std::cout << "scan_back = " << scan_back << std::endl;
+    
     float distance_left = std::sqrt(x[scan_left]*x[scan_left] + y[scan_left]*y[scan_left]);
+    std::cout << "distance_left = " << distance_left << std::endl;
     float distance_center = std::sqrt(x[scan_center]*x[scan_center] + y[scan_center]*y[scan_center]);
+    std::cout << "distance_center = " << distance_center << std::endl;
     float distance_right = std::sqrt(x[scan_right]*x[scan_right] + y[scan_right]*y[scan_right]);
+    std::cout << "distance_right = " << distance_right << std::endl;
     float distance_back = std::sqrt(x[scan_back]*x[scan_back] + y[scan_back]*y[scan_back]);
+    std::cout << "distance_back = " << distance_back << std::endl;
+    std::cout << "___________________________________________________________________________" << std::endl;
 
 // publish hypothesis of intersection recognition
     distance_thresh = updateDistanceThresh(&scan_cp);

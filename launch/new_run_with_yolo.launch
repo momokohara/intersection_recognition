@@ -7,16 +7,16 @@
   </node>
 
   <node name="new_scenario_executor" pkg="intersection_recognition" type="new_scenario_executor" output="screen" />
-    <param name="y_min_thresh" value="130"/>
-    <param name="y_max_thresh" value="230"/>
-    <param name="x_left_min_thresh" value="70"/>
-    <param name="x_left_max_thresh" value="120"/>
+    <param name="y_min_thresh" value="100"/>
+    <param name="y_max_thresh" value="200"/>
+    <param name="x_left_min_thresh" value="40"/>
+    <param name="x_left_max_thresh" value="140"/>
     <param name="x_center_min_thresh" value="190"/>
     <param name="x_center_max_thresh" value="290"/>
     <param name="x_right_min_thresh" value="350"/>
     <param name="x_right_max_thresh" value="450"/>
     <param name="x_back_min_thresh" value="500"/>
-    <param name="x_back_max_thresh" value="570"/>
+    <param name="x_back_max_thresh" value="600"/>
 
   <node name="cmd_vel_controller" pkg="intersection_recognition" type="new_cmd_vel_controller" output="screen" >
     <remap from="cmd_vel" to="icart_mini/cmd_vel" />

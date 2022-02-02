@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	<node name="extended_toe_finding" pkg="intersection_recognition" type="recognition_aisle_yolo" output="screen" >
+		<param name="door_size_thresh" value="10"/>
+		<param name="probability_thresh" value="0.5"/>
+	</node>
+</launch>

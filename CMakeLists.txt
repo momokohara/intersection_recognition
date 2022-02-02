@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   yolov5_pytorch_ros
   message_generation
+  actionlib_msgs
+  actionlib
   genmsg
   message_filters
 )
@@ -70,10 +72,10 @@ add_message_files(
  )
 
 ## Generate actions in the 'action' folder
-#add_action_files(
-#   FILES
-#   BoundingBoxes.action
-#)
+ add_action_files(
+    FILES
+    BoundingBoxes.action
+ )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
@@ -81,6 +83,7 @@ generate_messages(
     geometry_msgs
     sensor_msgs
     std_msgs
+    actionlib_msgs
 )
 
 
@@ -228,12 +231,41 @@ target_link_libraries(
 )
 
 
+add_executable(detected_aisle_type
+    src/detected_aisle_type.cpp
+)
+add_dependencies(detected_aisle_type intersection_recognition_generate_messages_cpp)
+target_link_libraries(
+  detected_aisle_type
+  ${catkin_LIBRARIES}
+)
+
+
 add_executable(new_cmd_vel_controller
     src/new_cmd_vel_controller.cpp
 )
 add_dependencies(new_cmd_vel_controller intersection_recognition_generate_messages_cpp)
 target_link_libraries(
   new_cmd_vel_controller
+  ${catkin_LIBRARIES}
+)
+
+add_executable(extended_toe_finding_and_yolo_2
+    src/extended_toe_finding_and_yolo_2.cpp
+)
+add_dependencies(extended_toe_finding_and_yolo_2 intersection_recognition_generate_messages_cpp)
+target_link_libraries(
+  extended_toe_finding_and_yolo_2
+  ${catkin_LIBRARIES}
+)
+
+
+add_executable(extended_toe_finding_and_yolo
+    src/extended_toe_finding_and_yolo.cpp
+)
+add_dependencies(extended_toe_finding_and_yolo intersection_recognition_generate_messages_cpp)
+target_link_libraries(
+  extended_toe_finding_and_yolo
   ${catkin_LIBRARIES}
 )
 
@@ -276,5 +308,12 @@ target_link_libraries(
 )
 
 
-
+add_executable(extended_toe_finding
+    src/extended_toe_finding.cpp
+)
+add_dependencies(extended_toe_finding intersection_recognition_generate_messages_cpp)
+target_link_libraries(
+  extended_toe_finding
+  ${catkin_LIBRARIES}
+)
 

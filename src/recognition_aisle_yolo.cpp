@@ -17,7 +17,7 @@ class intersectionRecognition {
     public:
         intersectionRecognition();
         double door_size_thresh;
-		double probability_thresh;
+	double probability_thresh;
 	int y_min_thresh;
 	int y_max_thresh;
 	int x_left_min_thresh;
@@ -53,14 +53,14 @@ void intersectionRecognition::get_ros_param(void){
 	probability_thresh = 0.5;
     y_min_thresh = 130;
     y_max_thresh = 230;
-    x_left_min_thresh = 80;
-    x_left_max_thresh = 180;
+    x_left_min_thresh = 40;
+    x_left_max_thresh = 140;
     x_center_min_thresh = 190;
     x_center_max_thresh = 290;
     x_right_min_thresh = 350;
     x_right_max_thresh = 450;
-    x_back_min_thresh = 510;
-    x_back_max_thresh = 610;
+    x_back_min_thresh = 500;
+    x_back_max_thresh = 600;
     node_.getParam("extended_toe_finding/door_size_thresh", door_size_thresh);
     node_.getParam("extended_toe_finding/probability_thresh", probability_thresh);
     node_.getParam("y_min_thresh", y_min_thresh);
