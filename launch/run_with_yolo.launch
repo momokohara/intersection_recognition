@@ -4,14 +4,19 @@
     <param name="door_size_thresh" value="10"/>
     <param name="probability_thresh" value="0.5"/>
     <param name="robot_frame" value="base_link"/>
+    <param name="ROBOT_RADIUS" value="0.5"/>
+    <param name="MIN_WALL_DISTANCE" value="1"/>
   </node>
 
   <node name="scenario_executor" pkg="intersection_recognition" type="new_scenario_executor" output="screen" />
 
   <node name="cmd_vel_controller" pkg="intersection_recognition" type="cmd_vel_controller" output="screen" >
+    <remap from="hokuyo_scan" to="merged_scan" />
     <remap from="cmd_vel" to="icart_mini/cmd_vel" />
     <param name="IMU_HZ" value="100.0"/>
     <param name="reverse_turn" value="1.0"/>
+    <param name="CHANGE_DIRECTION_DISTANCE_THRESH" value="0.6"/>
+    <param name="CHANGE_DIRECTION_RAD" value="0.35"/>
   </node>
 
 <!--

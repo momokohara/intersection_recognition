@@ -2,6 +2,8 @@
 <launch>
   <node name="extended_toe_finding" pkg="intersection_recognition" type="extended_toe_finding_and_yolo" output="screen" >
     <param name="door_size_thresh" value="0.5"/>
+    <param name="ROBOT_RADIUS" value="0.5"/>
+    <param name="MIN_WALL_DISTANCE" value="1"/>
   </node>
   <!-- <node name="rviz" pkg="rviz" type="rviz" /> -->
 
