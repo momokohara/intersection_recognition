@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <launch>
-  <node name="extended_toe_finding" pkg="intersection_recognition" type="recognition_aisle_yolo" output="screen" >
+  <node name="extended_toe_finding" pkg="intersection_recognition" type="extended_toe_finding_and_yolo_2" output="screen" >
+    <remap from="scan" to="merged_scan" />
+    <remap from="image_raw" to="image/mercator" />
+    <param name="SCAN_HZ" value="10" />
     <param name="door_size_thresh" value="10"/>
     <param name="probability_thresh" value="0.5"/>
     <param name="robot_frame" value="base_link"/>
@@ -8,7 +11,7 @@
     <param name="MIN_WALL_DISTANCE" value="1"/>
   </node>
 
-  <node name="scenario_executor" pkg="intersection_recognition" type="new_scenario_executor" output="screen" />
+  <node name="scenario_executor" pkg="intersection_recognition" type="scenario_executor" output="screen" />
 
   <node name="cmd_vel_controller" pkg="intersection_recognition" type="cmd_vel_controller" output="screen" >
     <remap from="hokuyo_scan" to="merged_scan" />
@@ -19,11 +22,12 @@
     <param name="CHANGE_DIRECTION_RAD" value="0.35"/>
   </node>
 
-<!--
+  <!--
   <node name="emergency_stop" pkg="intersection_recognition" type="simple_emergency_stop" output="screen" >
     <param name="stop_distance_thresh" value="0.2"/>
-  </node>
--->
+	  </node>
+  -->
+
 
   <node name="scenario_parser" pkg="intersection_recognition" type="scenario_parser.py" output="screen" >
     <param name="scenario_path" value="$(find intersection_recognition)/config/Scenarios/scenario01.txt" />

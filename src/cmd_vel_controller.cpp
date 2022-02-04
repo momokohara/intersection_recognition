@@ -48,7 +48,7 @@ class cmdVelController {
 };
 
 cmdVelController::cmdVelController(){
-    cmd_vel_pub_ = node_.advertise<geometry_msgs::Twist>("cmd_vel", 1, false);
+    cmd_vel_pub_ = node_.advertise<geometry_msgs::Twist>("icart_mini/cmd_vel", 1, false);
     turn_finish_flg_pub_ = node_.advertise<std_msgs::Bool>("turn_finish_flg", 1, false);
 
     imu_sub_ = node_.subscribe<sensor_msgs::Imu> ("imu_data", 1, &cmdVelController::moveCallback, this);
