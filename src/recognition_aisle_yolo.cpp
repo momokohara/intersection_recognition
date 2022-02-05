@@ -169,7 +169,7 @@ void intersectionRecognition::BBCallback(const yolov5_pytorch_ros::BoundingBoxes
 
 
 int main(int argc, char** argv){
-    ros::init(argc, argv, "extended_toe_finding");
+    ros::init(argc, argv, "recognition_aisle_yolo");
     intersectionRecognition recognition;
     recognition.get_ros_param();
     ros::Rate loop_rate(10);
