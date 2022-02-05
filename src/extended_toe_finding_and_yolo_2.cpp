@@ -24,7 +24,9 @@ class intersectionRecognition {
     public:
         intersectionRecognition();
         int SCAN_HZ;
-        float distance_thresh;
+    	float ROBOT_RADIUS;
+	float MIN_WALL_DISTANCE;
+    	float distance_thresh;
         std::string robot_frame_;
         double door_size_thresh;
         std::vector<std::string> direction_name_;
@@ -85,12 +87,18 @@ intersectionRecognition::intersectionRecognition() :
 
 void intersectionRecognition::get_ros_param(void){
     SCAN_HZ = 10;
+    ROBOT_RADIUS = 0.5;
+    MIN_WALL_DISTANCE = 1.0;
     door_size_thresh = 10;
+    distance_thresh = 5.0;
     robot_frame_ = "base_link";
+
     node_.getParam("extended_toe_finding/SCAN_HZ", SCAN_HZ);
     node_.getParam("extended_toe_finding/door_size_thresh", door_size_thresh);
     node_.getParam("extended_toe_finding/robot_frame", robot_frame_);
+    node_.getParam("extended_toe_finding/distance_thresh", distance_thresh);
 }
+
 
 void intersectionRecognition::actionYoloCallback(const actionlib::SimpleClientGoalState& state,
                                                  const intersection_recognition::BoundingBoxesResultConstPtr& result){
@@ -207,7 +215,7 @@ void intersectionRecognition::scanAndImageCallback(const sensor_msgs::LaserScan:
     }
 
 // publish hypothesis of intersection recognition
-    distance_thresh = updateDistanceThresh(&scan_cp);
+    //distance_thresh = updateDistanceThresh(&scan_cp);
     intersection_recognition::Hypothesis hypothesis;
     if(distance_left > distance_thresh){
         if (scan_left >= 0){
