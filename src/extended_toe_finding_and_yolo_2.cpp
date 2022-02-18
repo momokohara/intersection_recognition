@@ -27,6 +27,7 @@ class intersectionRecognition {
     	float ROBOT_RADIUS;
 	float MIN_WALL_DISTANCE;
     	float distance_thresh;
+	float front_distance_thresh;
         std::string robot_frame_;
         double door_size_thresh;
         std::vector<std::string> direction_name_;
@@ -64,7 +65,7 @@ class intersectionRecognition {
 
 intersectionRecognition::intersectionRecognition() :
     action_client_("yolov5_action", true),
-    direction_name_({"left", "right"})
+    direction_name_({"left", "right", "center"})
 {
     marker_pub_ = node_.advertise<visualization_msgs::MarkerArray>("visualization_markerarray", 1);
     hypothesis_pub_ = node_.advertise<intersection_recognition::Hypothesis>("hypothesis", 1);
@@ -92,11 +93,13 @@ void intersectionRecognition::get_ros_param(void){
     door_size_thresh = 10;
     distance_thresh = 5.0;
     robot_frame_ = "base_link";
+    front_distance_thresh = 3.0;
 
     node_.getParam("extended_toe_finding/SCAN_HZ", SCAN_HZ);
     node_.getParam("extended_toe_finding/door_size_thresh", door_size_thresh);
     node_.getParam("extended_toe_finding/robot_frame", robot_frame_);
     node_.getParam("extended_toe_finding/distance_thresh", distance_thresh);
+    node_.getParam("extended_toe_finding/front_distance_thresh", front_distance_thresh);
 }
 
 
@@ -113,7 +116,7 @@ void intersectionRecognition::merge_yolo_result(
     int width, double scan_angle,
     float *distance_left, float *distance_center, float *distance_right, float *distance_back
 ){
-    std::vector<float*> corridor_distance(2);
+    std::vector<float*> corridor_distance(3);
     int corridor_direction[2][2];
     // left
     corridor_distance[0] = distance_left;
@@ -126,13 +129,18 @@ void intersectionRecognition::merge_yolo_result(
     
     float probability_thresh = 0.5;
     for(const auto obj : yolo_result_){
-        if(((obj.Class == "door") || obj.Class == "square" || obj.Class == "step") && obj.probability >= probability_thresh){
+        if((obj.Class == "door" || obj.Class == "square" || obj.Class == "step" || obj.Class == "door_end") && obj.probability >= probability_thresh){
 	    double object_size = obj.xmax - obj.xmin;
 	    if(object_size > door_size_thresh) {
   	        double x_center = (obj.xmin + obj.xmax)/2;
 		double y_center = (obj.ymin + obj.ymax)/2;
+		if(obj.Class == "door_end" && (190 <= x_center && x_center <= 290) && *distance_center <= front_distance_thresh){
+			std::cout << "Detect a door_end on the center" << std::endl;
+			std::cout << "distance_center: " << *distance_center << std::endl;
+			*distance_center = 0;
+		    }
 		for(int i = 0; i < corridor_distance.size(); i++){
-		    if(corridor_direction[i][0] <= x_center && x_center <= corridor_direction[i][1]){
+		    if((obj.Class == "door" || obj.Class == "square" || obj.Class == "step") && (corridor_direction[i][0] <= x_center && x_center <= corridor_direction[i][1])){
 			std::cout << "Detect a "<< obj.Class <<" on the " << direction_name_[i] << std::endl;
 			*corridor_distance[i] = 0;
 		    }

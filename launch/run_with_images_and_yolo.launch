@@ -32,6 +32,6 @@
 -->
 
   <node name="scenario_parser" pkg="intersection_recognition" type="scenario_parser.py" output="screen" >
-	  <param name="scenario_path" value="$(find intersection_recognition)/config/Scenarios/scenario02.txt" />
+	  <param name="scenario_path" value="$(find intersection_recognition)/config/Scenarios/scenario05.txt" />
   </node>
 </launch>

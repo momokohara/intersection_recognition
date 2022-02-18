@@ -10,6 +10,7 @@
     <param name="robot_frame" value="base_link"/>
     <param name="ROBOT_RADIUS" value="0.5"/>
     <param name="MIN_WALL_DISTANCE" value="1"/>
+    <param name="front_distance_thresh" value="3.0"/>
   </node>
 
   <node name="scenario_executor" pkg="intersection_recognition" type="scenario_executor" output="screen" />
@@ -31,6 +32,6 @@
 
 
   <node name="scenario_parser" pkg="intersection_recognition" type="scenario_parser.py" output="screen" >
-    <param name="scenario_path" value="$(find intersection_recognition)/config/Scenarios/scenario19.txt" />
+    <param name="scenario_path" value="$(find intersection_recognition)/config/Scenarios/scenario50.txt" />
   </node>
 </launch>
